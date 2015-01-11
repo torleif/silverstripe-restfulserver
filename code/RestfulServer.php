@@ -186,7 +186,7 @@ class RestfulServer extends Controller {
 			// Format: /api/v1/<MyClass>/<ID>
 			$obj = $this->getObjectQuery($className, $id, $params)->First();
 			if(!$obj) return $this->notFound();
-			if(!$obj->canView()) return $this->permissionFailure();
+			if(!$obj->canView($this->member)) return $this->permissionFailure();
 
 			// Format: /api/v1/<MyClass>/<ID>/<Relation>
 			if($relationName) {
@@ -210,7 +210,7 @@ class RestfulServer extends Controller {
 		if($obj instanceof SS_List) {
 			$responseFormatter->setTotalSize($obj->dataQuery()->query()->unlimitedRowCount());
 			$objs = new ArrayList($obj->toArray());
-			foreach($objs as $obj) if(!$obj->canView()) $objs->remove($obj);
+			foreach($objs as $obj) if(!$obj->canView($this->member)) $objs->remove($obj);
 			return $responseFormatter->convertDataObjectSet($objs, $fields);
 		} else if(!$obj) {
 			$responseFormatter->setTotalSize(0);
@@ -334,7 +334,7 @@ class RestfulServer extends Controller {
 	protected function deleteHandler($className, $id) {
 		$obj = DataObject::get_by_id($className, $id);
 		if(!$obj) return $this->notFound();
-		if(!$obj->canDelete()) return $this->permissionFailure();
+		if(!$obj->canDelete($this->member)) return $this->permissionFailure();
 		
 		$obj->delete();
 		
@@ -348,7 +348,7 @@ class RestfulServer extends Controller {
 	protected function putHandler($className, $id) {
 		$obj = DataObject::get_by_id($className, $id);
 		if(!$obj) return $this->notFound();
-		if(!$obj->canEdit()) return $this->permissionFailure();
+		if(!$obj->canEdit($this->member)) return $this->permissionFailure();
 		
 		$reqFormatter = $this->getRequestDataFormatter($className);
 		if(!$reqFormatter) return $this->unsupportedMediaType();
@@ -405,7 +405,7 @@ class RestfulServer extends Controller {
 			$this->getResponse()->setStatusCode(204); // No Content
 			return true;
 		} else {
-			if(!singleton($className)->canCreate()) return $this->permissionFailure();
+			if(!singleton($className)->canCreate($this->member)) return $this->permissionFailure();
 			$obj = new $className();
 		
 			$reqFormatter = $this->getRequestDataFormatter($className);

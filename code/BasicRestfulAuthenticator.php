@@ -18,6 +18,17 @@ class BasicRestfulAuthenticator  {
 	 * @return Member|false The Member object, or false if no member
 	 */
 	public static function authenticate() {
+		// if the user uses HTTP authentication to authorise themselves
+		if(isset($_SERVER['HTTP_AUTHORISATION'])) {
+			list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = 
+				explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORISATION'], 6)));
+		}
+		// american localisation
+		if(isset($_SERVER['HTTP_AUTHORIZATION'])) {
+			list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = 
+				explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
+		}
+		
 		//if there is no username or password, break
 		if(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) return false;
 
